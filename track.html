@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Github Release Tracker</title>
+    <link rel="stylesheet" href="track.css">
+</head>
+
+<body>
+    <h1>Github Release Tracker</h1>
+    <p>Enter a github project name and click the button to see its latest release.</p>
+    <input id="project-input" type="text" placeholder="e.g. microsoft/vscode">
+    <button id="add-button">Add</button>
+    <table id="project-table">
+        <thead>
+            <tr>
+                <th>Project</th>
+                <th>Latest Release</th>
+                <th>Release Date</th>
+                <th>Previous Release</th>
+                <th>Previous Release Difference</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="project-body">
+        </tbody>
+    </table>
+    <script src="track.js"></script>
+</body>
+
+</html>
