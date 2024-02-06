@@ -127,9 +127,10 @@ function createTableRow(project) {
     removeButton.className = "remove-button";
     removeButton.addEventListener("click", function () {
         projectBody.removeChild(tr);
-        // remove cookies and truncate array
+        // remove from cache
         projects.splice(projects.indexOf(project), 1);
         saveProjectsToLocalStorage(projects);
+        localStorage.removeItem(`releaseInfo_${project}`);
     });
     tdAction.appendChild(removeButton);
     tr.appendChild(tdAction);
