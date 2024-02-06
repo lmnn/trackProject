@@ -85,11 +85,13 @@ async function getReleaseInfo(project) {
         }
 
         let latestTag = latestRelease?.tag_name;
-        let latestDate = new Date(latestRelease?.published_at);
+        let tempDate = new Date(latestRelease?.published_at);
+        let latestDate = isNaN(tempDate.getTime()) ? null : tempDate;
         let previousTag = previousRelease?.tag_name;
-        let previousDate = new Date(previousRelease?.published_at);
-        let diff = (isNaN(latestDate.getTime()) || isNaN(previousDate.getTime())) ?
-            0 : Math.floor((latestDate - previousDate) / (1000 * 60 * 60 * 24));
+        let tempDate2 = new Date(previousRelease?.published_at);
+        let previousDate = isNaN(tempDate2.getTime()) ? null : tempDate2;
+        let diff = latestDate && previousDate ?
+            Math.floor((latestDate - previousDate) / (1000 * 60 * 60 * 24)) : null;
 
         //save to cache
         const info = [latestTag, latestDate, previousTag, diff];
@@ -138,10 +140,10 @@ function createTableRow(project) {
 
     getReleaseInfo(project)
         .then(info => {
-            tdLatest.textContent = info[0];  // latest release No
+            tdLatest.textContent = info[0] ? info[0] : "-";                                      // latest release No
             tdDate.textContent = info[1] ? new Date(info[1]).toLocaleDateString('en-CA') : "-";  // release date
-            tdPrevious.textContent = info[2];  // previous release No
-            tdDiff.textContent = info[3] != 0 ? info[3] + " days" : "-";  // diff in days
+            tdPrevious.textContent = info[2] ? info[2] : "-";                                    // previous release No
+            tdDiff.textContent = info[3] ? info[3] + " days" : "-";           // diff in days
         })
         .catch(error => console.error(error));
     return tr;
@@ -176,7 +178,7 @@ addButton.addEventListener("click", function () {
     handleInput();
 });
 
-projectInput.addEventListener("submit", function (event) {
+projectInput.addEventListener("keypress", function (event) {
     if (event.key === 'Enter' || event.code === 'Enter') {
         handleInput();
     }
