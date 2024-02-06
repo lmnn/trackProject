@@ -9,36 +9,32 @@ let projects = [
     "hd-zero/hdzero-vtx"
 ];
 
-// Save projects to a cookie
-function saveProjectsToCookie(projects) {
+// Save projects to localStorage
+function saveProjectsToLocalStorage(projects) {
     try {
-        document.cookie = `projects=${JSON.stringify(projects)}; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+        localStorage.setItem('projects', JSON.stringify(projects));
     } catch (error) {
         console.error('Failed to stringify projects');
     }
 }
 
-// Load projects from a cookie
-function loadProjectsFromCookie() {
-    let cookies = document.cookie.split('; ');
-    for (let i = 0; i < cookies.length; i++) {
-        let cookie = cookies[i].split('=');
-        if (cookie[0] === 'projects') {
-            try {
-                return JSON.parse(cookie[1]);
-            } catch (error) {
-                // Delete the cookie
-                document.cookie = "projects=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                console.error("Error parsing projects from cookie");
-                break;
-            }
+// Load projects from localStorage
+function loadProjectsFromLocalStorage() {
+    let savedProjects = localStorage.getItem('projects');
+    if (savedProjects) {
+        try {
+            return JSON.parse(savedProjects);
+        } catch (error) {
+            // Clear the localStorage
+            localStorage.removeItem('projects');
+            console.error("Error parsing projects from localStorage");
         }
     }
     return [];
 }
 
-// Load projects from cookie
-let savedProjects = loadProjectsFromCookie();
+// Load projects from localStorage
+let savedProjects = loadProjectsFromLocalStorage();
 if (savedProjects.length > 0) {
     projects = savedProjects;
 }
@@ -85,11 +81,13 @@ async function getReleaseInfo(project) {
         }
 
         let latestTag = latestRelease?.tag_name;
-        let latestDate = new Date(latestRelease?.published_at);
+        let tempDate = new Date(latestRelease?.published_at);
+        let latestDate = isNaN(tempDate.getTime()) ? null : tempDate;
         let previousTag = previousRelease?.tag_name;
-        let previousDate = new Date(previousRelease?.published_at);
-        let diff = (isNaN(latestDate.getTime()) || isNaN(previousDate.getTime())) ?
-            0 : Math.floor((latestDate - previousDate) / (1000 * 60 * 60 * 24));
+        let tempDate2 = new Date(previousRelease?.published_at);
+        let previousDate = isNaN(tempDate2.getTime()) ? null : tempDate2;
+        let diff = latestDate && previousDate ?
+            Math.floor((latestDate - previousDate) / (1000 * 60 * 60 * 24)) : null;
 
         //save to cache
         const info = [latestTag, latestDate, previousTag, diff];
@@ -129,19 +127,20 @@ function createTableRow(project) {
     removeButton.className = "remove-button";
     removeButton.addEventListener("click", function () {
         projectBody.removeChild(tr);
-        // remove cookies and truncate array
+        // remove from cache
         projects.splice(projects.indexOf(project), 1);
-        saveProjectsToCookie(projects);
+        saveProjectsToLocalStorage(projects);
+        localStorage.removeItem(`releaseInfo_${project}`);
     });
     tdAction.appendChild(removeButton);
     tr.appendChild(tdAction);
 
     getReleaseInfo(project)
         .then(info => {
-            tdLatest.textContent = info[0];  // latest release No
+            tdLatest.textContent = info[0] ? info[0] : "-";                                      // latest release No
             tdDate.textContent = info[1] ? new Date(info[1]).toLocaleDateString('en-CA') : "-";  // release date
-            tdPrevious.textContent = info[2];  // previous release No
-            tdDiff.textContent = info[3] != 0 ? info[3] + " days" : "-";  // diff in days
+            tdPrevious.textContent = info[2] ? info[2] : "-";                                    // previous release No
+            tdDiff.textContent = info[3] ? info[3] + " days" : "-";                              // diff in days
         })
         .catch(error => console.error(error));
     return tr;
@@ -165,7 +164,7 @@ function handleInput() {
     if (project && pattern.test(project)) {
         projectBody.appendChild(createTableRow(project));
         projects.push(project);
-        saveProjectsToCookie(projects);
+        saveProjectsToLocalStorage(projects);
         projectInput.value = "";
     } else {
         console.error("Invalid project name, it should be in the format 'project/repository'.");
@@ -176,7 +175,7 @@ addButton.addEventListener("click", function () {
     handleInput();
 });
 
-projectInput.addEventListener("submit", function (event) {
+projectInput.addEventListener("keypress", function (event) {
     if (event.key === 'Enter' || event.code === 'Enter') {
         handleInput();
     }
