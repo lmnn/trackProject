@@ -1,6 +1,6 @@
 /* Add some style to the page */
 body {
-    font-family: Arial, sans-serif;
+    font-family: System-UI, Arial;
     margin: 20px;
     background-color: #f0f0f0;
 }
@@ -38,7 +38,6 @@ button:hover {
 
 table {
     border-collapse: collapse;
-    /* width: 100%; */
     margin-top: 20px;
     max-width: fit-content;
 }
@@ -70,7 +69,17 @@ td:nth-child(n+5) {
     width: 1px;
 }
 
-th, td:last-child {
-    border :none;
+th,
+td:last-child {
+    border: none;
     background-color: #eee;
-  }
+}
+
+.sortable-header {
+    cursor: pointer;
+}
+
+.sortable-header:hover {
+    text-decoration: underline;
+    color: #0099ff;
+}

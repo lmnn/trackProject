@@ -194,3 +194,68 @@ projectInput.addEventListener("keypress", function (event) {
         handleInput();
     }
 });
+
+// Function to sort rows
+function sortRowsByNme(rows, ascending) {
+    return rows.sort(function (rowA, rowB) {
+        let tdProjectA = rowA.getElementsByTagName("td")[0].textContent;
+        let tdProjectB = rowB.getElementsByTagName("td")[0].textContent;
+        return ascending ? tdProjectA.localeCompare(tdProjectB) : tdProjectB.localeCompare(tdProjectA);
+    });
+}
+
+function sortRowsByDate(rows, ascending) {
+    return rows.sort(function (rowA, rowB) {
+        let dateA = new Date(rowA.getElementsByTagName("td")[2].textContent);
+        let dateB = new Date(rowB.getElementsByTagName("td")[2].textContent);
+        return ascending ? dateA - dateB : dateB - dateA;
+    });
+}
+
+// Get the table and the "Project" header
+let table = document.getElementById("project-table");
+let projectHeader = document.getElementById("project-header");
+let projectDate = document.getElementById("project-date");
+let sortOrder = false;
+
+// Add a click event listener to the "Project" header
+projectHeader.addEventListener("click", function () {
+    // Get the rows in the table
+    let rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
+
+    let sortedRows = sortRowsByNme(rows, sortOrder);
+
+    // Remove the existing rows in the table
+    for (let i = table.rows.length - 1; i > 0; i--) {
+        table.deleteRow(i);
+    }
+
+    // Append the sorted rows to the table
+    let tbody = table.getElementsByTagName("tbody")[0];
+    for (let row of sortedRows) {
+        tbody.appendChild(row);
+    }
+
+    sortOrder = !sortOrder;
+});
+
+// Add a click event listener to the "Date" header
+projectDate.addEventListener("click", function () {
+    // Get the rows in the table
+    let rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
+
+    let sortedRows = sortRowsByDate(rows, sortOrder);
+
+    // Remove the existing rows in the table
+    for (let i = table.rows.length - 1; i > 0; i--) {
+        table.deleteRow(i);
+    }
+
+    // Append the sorted rows to the table
+    let tbody = table.getElementsByTagName("tbody")[0];
+    for (let row of sortedRows) {
+        tbody.appendChild(row);
+    }
+
+    sortOrder = !sortOrder;
+});
