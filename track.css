@@ -6,7 +6,8 @@ body {
 }
 
 h1 {
-    text-align: center;
+    text-align: left;
+    margin-left: 1rem;
     color: #333;
 }
 
@@ -37,20 +38,22 @@ button:hover {
 
 table {
     border-collapse: collapse;
-    width: 100%;
+    /* width: 100%; */
     margin-top: 20px;
+    max-width: fit-content;
 }
 
-th,
 td {
     border: 1px solid #ccc;
-    padding: 10px;
+    padding: 0.6rem;
     text-align: left;
+    background-color: white;
 }
 
 th {
     background-color: #eee;
     color: #333;
+    padding: 10px;
 }
 
 .remove-button {
@@ -62,3 +65,12 @@ th {
 td:nth-child(2) {
     font-weight: bold;
 }
+
+td:nth-child(n+5) {
+    width: 1px;
+}
+
+th, td:last-child {
+    border :none;
+    background-color: #eee;
+  }
