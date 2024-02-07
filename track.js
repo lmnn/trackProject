@@ -65,6 +65,20 @@ async function getReleaseInfo(project) {
         }
 
         const response = await fetchWithTimeout(url);
+
+        if (response.status === 404) {
+            console.log('Project not found');
+            return [];
+        }
+
+        // log Github API rate limits
+        console.log('Rate limit:', response.headers.get('X-Ratelimit-Remaining') + "/" + response.headers.get('X-Ratelimit-Limit') + " (per hour)");
+        const resetTime = Number(response.headers.get('X-RateLimit-Reset'));
+        const currentTime = Math.floor(Date.now() / 1000); // Current time in UTC epoch seconds
+        const timeDiffInSeconds = resetTime - currentTime; // Time difference in seconds
+        const timeDiffInMinutes = Math.ceil(timeDiffInSeconds / 60); // Time difference in minutes
+        console.log(`Rate limit will reset in ${timeDiffInMinutes} minutes`);
+
         const data = await response.json();
 
         let latestRelease, previousRelease;
@@ -91,7 +105,7 @@ async function getReleaseInfo(project) {
 
         //save to cache
         const info = [latestTag, latestDate, previousTag, diff];
-        const expirationTime = Date.now() + 24 * 60 * 60 * 1000;
+        const expirationTime = Date.now() + 24 * 60 * 60 * 1000; //+1 day
         const cachedData2 = {
             data: info, // fetched data
             expiresAt: expirationTime
@@ -107,7 +121,7 @@ async function getReleaseInfo(project) {
 function createTableRow(project) {
     let tr = document.createElement("tr");
     let tdProject = document.createElement("td");
-    tdProject.textContent = project;
+    tdProject.textContent = project.replace("/", "/\u200B");
     tr.appendChild(tdProject);
     let tdLatest = document.createElement("td");
     tdLatest.textContent = "loading...";
@@ -123,7 +137,7 @@ function createTableRow(project) {
     tr.appendChild(tdDiff);
     let tdAction = document.createElement("td");
     let removeButton = document.createElement("button");
-    removeButton.textContent = "Remove";
+    removeButton.textContent = " X ";
     removeButton.className = "remove-button";
     removeButton.addEventListener("click", function () {
         projectBody.removeChild(tr);
@@ -140,7 +154,7 @@ function createTableRow(project) {
             tdLatest.textContent = info[0] ? info[0] : "-";                                      // latest release No
             tdDate.textContent = info[1] ? new Date(info[1]).toLocaleDateString('en-CA') : "-";  // release date
             tdPrevious.textContent = info[2] ? info[2] : "-";                                    // previous release No
-            tdDiff.textContent = info[3] ? info[3] + " days" : "-";                              // diff in days
+            tdDiff.textContent = info[3] ? info[3] + "\u00A0days" : "-";                         // diff in days
         })
         .catch(error => console.error(error));
     return tr;
