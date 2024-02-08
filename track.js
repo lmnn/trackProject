@@ -20,7 +20,7 @@ function saveProjectsToLocalStorage(projects) {
 
 // Load projects from localStorage
 function loadProjectsFromLocalStorage() {
-    let savedProjects = localStorage.getItem('projects');
+    const savedProjects = localStorage.getItem('projects');
     if (savedProjects) {
         try {
             return JSON.parse(savedProjects);
@@ -49,7 +49,7 @@ function fetchWithTimeout(url, options, timeout = 5000) {
 }
 
 async function getReleaseInfo(project) {
-    let url = "https://api.github.com/repos/" + project + "/releases";
+    const url = "https://api.github.com/repos/" + project + "/releases";
     try {
         const cachedData = localStorage.getItem(`releaseInfo_${project}`);
         if (cachedData) {
@@ -71,7 +71,7 @@ async function getReleaseInfo(project) {
             return [];
         }
 
-        // log Github API rate limits
+        // Log Github API rate limits
         console.log('Rate limit:', response.headers.get('X-Ratelimit-Remaining') + "/" + response.headers.get('X-Ratelimit-Limit') + " (per hour)");
         const resetTime = Number(response.headers.get('X-RateLimit-Reset'));
         const currentTime = Math.floor(Date.now() / 1000); // Current time in UTC epoch seconds
@@ -94,16 +94,16 @@ async function getReleaseInfo(project) {
             }
         }
 
-        let latestTag = latestRelease?.tag_name;
-        let tempDate = new Date(latestRelease?.published_at);
-        let latestDate = isNaN(tempDate.getTime()) ? null : tempDate;
-        let previousTag = previousRelease?.tag_name;
-        let tempDate2 = new Date(previousRelease?.published_at);
-        let previousDate = isNaN(tempDate2.getTime()) ? null : tempDate2;
-        let diff = latestDate && previousDate ?
+        const latestTag = latestRelease?.tag_name;
+        const tempDate = new Date(latestRelease?.published_at);
+        const latestDate = isNaN(tempDate.getTime()) ? null : tempDate;
+        const previousTag = previousRelease?.tag_name;
+        const tempDate2 = new Date(previousRelease?.published_at);
+        const previousDate = isNaN(tempDate2.getTime()) ? null : tempDate2;
+        const diff = latestDate && previousDate ?
             Math.floor((latestDate - previousDate) / (1000 * 60 * 60 * 24)) : null;
 
-        //save to cache
+        // Save to cache
         const info = [latestTag, latestDate, previousTag, diff];
         const expirationTime = Date.now() + 24 * 60 * 60 * 1000; //+1 day
         const cachedData2 = {
@@ -119,24 +119,24 @@ async function getReleaseInfo(project) {
 }
 
 function createTableRow(project) {
-    let tr = document.createElement("tr");
-    let tdProject = document.createElement("td");
+    const tr = document.createElement("tr");
+    const tdProject = document.createElement("td");
     tdProject.textContent = project.replace("/", "/\u200B");
     tr.appendChild(tdProject);
-    let tdLatest = document.createElement("td");
+    const tdLatest = document.createElement("td");
     tdLatest.textContent = "loading...";
     tr.appendChild(tdLatest);
-    let tdDate = document.createElement("td");
+    const tdDate = document.createElement("td");
     tdDate.textContent = "loading...";
     tr.appendChild(tdDate);
-    let tdPrevious = document.createElement("td");
+    const tdPrevious = document.createElement("td");
     tdPrevious.textContent = "loading...";
     tr.appendChild(tdPrevious);
-    let tdDiff = document.createElement("td");
+    const tdDiff = document.createElement("td");
     tdDiff.textContent = "loading...";
     tr.appendChild(tdDiff);
-    let tdAction = document.createElement("td");
-    let removeButton = document.createElement("button");
+    const tdAction = document.createElement("td");
+    const removeButton = document.createElement("button");
     removeButton.textContent = " X ";
     removeButton.className = "remove-button";
     removeButton.addEventListener("click", function () {
@@ -151,29 +151,29 @@ function createTableRow(project) {
 
     getReleaseInfo(project)
         .then(info => {
-            tdLatest.textContent = info[0] ? info[0] : "-";                                      // latest release No
-            tdDate.textContent = info[1] ? new Date(info[1]).toLocaleDateString('en-CA') : "-";  // release date
-            tdPrevious.textContent = info[2] ? info[2] : "-";                                    // previous release No
-            tdDiff.textContent = info[3] ? info[3] + "\u00A0days" : "-";                         // diff in days
-        })
+                tdLatest.textContent = info[0] ? info[0] : "-";                                      // latest release No
+                tdDate.textContent = info[1] ? new Date(info[1]).toLocaleDateString('en-CA') : "-";  // release date
+                tdPrevious.textContent = info[2] ? info[2] : "-";                                    // previous release No
+                tdDiff.textContent = info[3] ? info[3] + "\u00A0days" : "-";                         // diff in days
+            })
         .catch(error => console.error(error));
     return tr;
 }
 
-let projectInput = document.getElementById("project-input");
-let projectBody = document.getElementById("project-body");
-let addButton = document.getElementById("add-button");
+const projectInput = document.getElementById("project-input");
+const projectBody = document.getElementById("project-body");
+const addButton = document.getElementById("add-button");
 
 // Use your projects list
-for (let project of projects) {
-    let tr = createTableRow(project);
+for (const project of projects) {
+    const tr = createTableRow(project);
     projectBody.appendChild(tr);
 }
 
 function handleInput() {
-    let project = projectInput.value;
-    // check for alphanumeric or hyphen, slash, alphanumeric or hyphen
-    let pattern = /^[a-zA-Z]+[a-zA-Z\d\-_]*\/[a-zA-Z]+[a-zA-Z\d\-_]*$/;
+    const project = projectInput.value;
+    // Check for alphanumeric or hyphen, slash, alphanumeric or hyphen
+    const pattern = /^[a-zA-Z]+[a-zA-Z\d\-_]*\/[a-zA-Z]+[a-zA-Z\d\-_]*$/;
 
     if (project && pattern.test(project)) {
         projectBody.appendChild(createTableRow(project));
@@ -195,35 +195,34 @@ projectInput.addEventListener("keypress", function (event) {
     }
 });
 
-// Function to sort rows
 function sortRowsByNme(rows, ascending) {
     return rows.sort(function (rowA, rowB) {
-        let tdProjectA = rowA.getElementsByTagName("td")[0].textContent;
-        let tdProjectB = rowB.getElementsByTagName("td")[0].textContent;
+        const tdProjectA = rowA.getElementsByTagName("td")[0].textContent;
+        const tdProjectB = rowB.getElementsByTagName("td")[0].textContent;
         return ascending ? tdProjectA.localeCompare(tdProjectB) : tdProjectB.localeCompare(tdProjectA);
     });
 }
 
 function sortRowsByDate(rows, ascending) {
     return rows.sort(function (rowA, rowB) {
-        let dateA = new Date(rowA.getElementsByTagName("td")[2].textContent);
-        let dateB = new Date(rowB.getElementsByTagName("td")[2].textContent);
+        const dateA = new Date(rowA.getElementsByTagName("td")[2].textContent);
+        const dateB = new Date(rowB.getElementsByTagName("td")[2].textContent);
         return ascending ? dateA - dateB : dateB - dateA;
     });
 }
 
-// Get the table and the "Project" header
-let table = document.getElementById("project-table");
-let projectHeader = document.getElementById("project-header");
-let projectDate = document.getElementById("project-date");
+// Get the table and the headers
+const table = document.getElementById("project-table");
+const projectHeader = document.getElementById("project-header");
+const projectDate = document.getElementById("project-date");
 let sortOrder = false;
 
 // Add a click event listener to the "Project" header
 projectHeader.addEventListener("click", function () {
     // Get the rows in the table
-    let rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
+    const rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
 
-    let sortedRows = sortRowsByNme(rows, sortOrder);
+    const sortedRows = sortRowsByNme(rows, sortOrder);
 
     // Remove the existing rows in the table
     for (let i = table.rows.length - 1; i > 0; i--) {
@@ -231,20 +230,21 @@ projectHeader.addEventListener("click", function () {
     }
 
     // Append the sorted rows to the table
-    let tbody = table.getElementsByTagName("tbody")[0];
-    for (let row of sortedRows) {
+    const tbody = table.getElementsByTagName("tbody")[0];
+    for (const row of sortedRows) {
         tbody.appendChild(row);
     }
 
+    // Toggle sorting
     sortOrder = !sortOrder;
 });
 
 // Add a click event listener to the "Date" header
 projectDate.addEventListener("click", function () {
     // Get the rows in the table
-    let rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
+    const rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
 
-    let sortedRows = sortRowsByDate(rows, sortOrder);
+    const sortedRows = sortRowsByDate(rows, sortOrder);
 
     // Remove the existing rows in the table
     for (let i = table.rows.length - 1; i > 0; i--) {
@@ -252,10 +252,11 @@ projectDate.addEventListener("click", function () {
     }
 
     // Append the sorted rows to the table
-    let tbody = table.getElementsByTagName("tbody")[0];
-    for (let row of sortedRows) {
+    const tbody = table.getElementsByTagName("tbody")[0];
+    for (const row of sortedRows) {
         tbody.appendChild(row);
     }
 
+    // Toggle sorting
     sortOrder = !sortOrder;
 });
