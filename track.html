@@ -5,28 +5,42 @@
     <meta charset="UTF-8">
     <title>Github Release Tracker</title>
     <link rel="stylesheet" href="track.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
 </head>
 
 <body>
-    <h1>Github Release Tracker</h1>
-    <p>Enter a github project name and click the button to see its latest release.</p>
-    <input id="project-input" type="text" placeholder="e.g. microsoft/vscode">
-    <button id="add-button">Add</button>
-    <table id="project-table">
-        <thead>
-            <tr>
-                <th class="sortable-header" id="project-name">Project</th>
-                <th>Latest</th>
-                <th class="sortable-header" id="project-date">Date</th>
-                <th>Prior</th>
-                <th>Delta</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="project-body">
-        </tbody>
-    </table>
-    <script src="track.js"></script>
+    <div class="container">
+        <h1>Github Release Tracker</h1>
+        <p>Enter a <a href="https://github.com/explore">Github</a> project name or URL and click the button to see its latest
+            release.<br>
+            Click <b>Project</b> or <b>Date</b> to sort entries accordingly.<br>
+        </p>
+        <input id="project-input" type="text" placeholder="e.g. https://github.com/microsoft/vscode">
+        <button id="add-button">Add</button>
+        <table id="project-table">
+            <thead>
+                <tr>
+                    <th class="sortable-header" id="project-name">Project</th>
+                    <th>Latest</th>
+                    <th class="sortable-header" id="project-date">Date</th>
+                    <th>Prior</th>
+                    <th>Delta</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="project-body">
+            </tbody>
+        </table>
+        <div class="footer">
+            <div class='box green'>Release</div>&nbsp; is newer than 1 month<br>
+            <div class='box red'>Release</div>&nbsp; is older than 6 months<br>
+            <button class="remove-button">X</button>&nbsp; - click to delete the row
+        </div>
+        <div class="footer" name="rate-limit"></div>
+        
+        <script src="track.js"></script>
+    </div>
 </body>
 
 </html>
