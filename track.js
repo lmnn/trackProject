@@ -213,12 +213,12 @@ function sortRowsByDate(rows, ascending) {
 
 // Get the table and the headers
 const table = document.getElementById("project-table");
-const projectHeader = document.getElementById("project-header");
+const projectName = document.getElementById("project-name");
 const projectDate = document.getElementById("project-date");
 let sortOrder = false;
 
 // Add a click event listener to the "Project" header
-projectHeader.addEventListener("click", function () {
+projectName.addEventListener("click", function () {
     // Get the rows in the table
     const rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
 
@@ -259,4 +259,23 @@ projectDate.addEventListener("click", function () {
 
     // Toggle sorting
     sortOrder = !sortOrder;
+
+    // Highlight cells in green where the date is no older than 1 month
+    // and in red if older than half a year
+    const today = new Date();
+    const oneMonthAgo = new Date();
+    const halfYearAgo = new Date();
+    oneMonthAgo.setMonth(today.getMonth() - 1);
+    halfYearAgo.setMonth(today.getMonth() - 6);
+    for (const row of rows) {
+        const dateCell = row.getElementsByTagName("td")[2];
+        const date = new Date(dateCell.textContent);
+        if (date > oneMonthAgo && date <= today) {
+            dateCell.style.backgroundColor = "#00BB0033";
+        }
+        if (date < halfYearAgo) {
+            dateCell.style.backgroundColor = "#BB000033";
+        }
+    }
+
 });
