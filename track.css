@@ -1,8 +1,10 @@
-/* Add some style to the page */
 body {
     font-family: System-UI, Arial;
-    margin: 20px;
+    margin: 0;
+    padding: 0;
     background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
 }
 
 h1 {
@@ -16,14 +18,16 @@ p {
 }
 
 input {
-    width: 300px;
+    width: 15rem;
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 5px;
+    margin-bottom: 0.5rem;
 }
 
 button {
-    margin-left: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
     border: none;
     border-radius: 5px;
     padding: 5px 10px;
@@ -39,7 +43,7 @@ button:hover {
 table {
     border-collapse: collapse;
     margin-top: 20px;
-    max-width: fit-content;
+    width: 100%;
 }
 
 td {
@@ -60,15 +64,22 @@ th {
     color: white;
 }
 
-/* Add a bold font for the Latest Release column */
+.footer {
+    font-size: small;
+    padding: 5px;
+}
+
+/* Bold font for Release column */
 td:nth-child(2) {
     font-weight: bold;
 }
 
+/* Narrow Delta column */
 td:nth-child(n+5) {
-    width: 1px;
+    width: 4rem;
 }
 
+/* No border for headers and buttons */
 th,
 td:last-child {
     border: none;
@@ -82,4 +93,60 @@ td:last-child {
 .sortable-header:hover {
     text-decoration: underline;
     color: #0099ff;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 2% auto;
+    width: 95%;
+}
+
+.box {
+    border: 1px solid #ccc;
+    max-width: fit-content;
+    display: inline-block;
+}
+
+.red {
+    background-color: #BB000033;
+}
+
+.green {
+    background-color: #00BB0033;
+}
+
+@media screen and (max-width: 480px) {
+    body {
+        font-size: 0.8em;
+        font-stretch: condensed;
+        width: 100%;
+    }
+
+    h1 {
+        text-align: center;
+        margin-left: 1rem;
+        color: #333;
+    }
+
+    th:nth-child(4),
+    td:nth-child(4) {
+        display: none;
+    }
+
+    th:nth-child(n+5),
+    td:nth-child(5) {
+        display: none;
+    }
+
+    th:last-child,
+    td:last-child {
+        width: 0;
+        padding: 2px;
+    }
+
+    .container {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
 }

@@ -39,7 +39,7 @@ if (savedProjects.length > 0) {
     projects = savedProjects;
 }
 
-function fetchWithTimeout(url, options, timeout = 5000) {
+function fetchWithTimeout(url, options, timeout = 10000) {
     return Promise.race([
         fetch(url, options),
         new Promise((_, reject) =>
@@ -65,10 +65,10 @@ async function getReleaseInfo(project) {
         }
 
         const response = await fetchWithTimeout(url);
-
-        if (response.status === 404) {
+        
+        if (!response.ok) {
             console.log('Project not found');
-            return [];
+            return;
         }
 
         // Log Github API rate limits
@@ -113,8 +113,8 @@ async function getReleaseInfo(project) {
         localStorage.setItem(`releaseInfo_${project}`, JSON.stringify(cachedData2));
         return info;
     } catch (error) {
-        console.error("Error:", error);
-        return [];  // Return an empty array on error
+        console.error("Error");
+        return;
     }
 }
 
@@ -151,11 +151,20 @@ function createTableRow(project) {
 
     getReleaseInfo(project)
         .then(info => {
-                tdLatest.textContent = info[0] ? info[0] : "-";                                      // latest release No
-                tdDate.textContent = info[1] ? new Date(info[1]).toLocaleDateString('en-CA') : "-";  // release date
-                tdPrevious.textContent = info[2] ? info[2] : "-";                                    // previous release No
-                tdDiff.textContent = info[3] ? info[3] + "\u00A0days" : "-";                         // diff in days
-            })
+            if (!info) {
+                console.log("DEBUG ", project)
+                projects.splice(projects.indexOf(project), 1);
+                saveProjectsToLocalStorage(projects);
+                localStorage.removeItem(`releaseInfo_${project}`);
+                projectBody.removeChild(tr);
+                return;
+            } else {
+                tdLatest.textContent = info[0] ? info[0] : "-";                               // latest Release
+                tdDate.textContent = info[1] ? new Date(info[1]).toLocaleDateString() : "-";  // release Date
+                tdPrevious.textContent = info[2] ? info[2] : "-";                             // previous Release
+                tdDiff.textContent = info[3] ? info[3] + " days" : "-";                       // Delta in days
+            }
+        })
         .catch(error => console.error(error));
     return tr;
 }
@@ -167,19 +176,47 @@ const addButton = document.getElementById("add-button");
 // Use your projects list
 for (const project of projects) {
     const tr = createTableRow(project);
-    projectBody.appendChild(tr);
+    if (tr) {
+        projectBody.appendChild(tr);
+    }
+}
+
+function parseRepoName(input) {
+    let repoName;
+    if (input.startsWith('http')) {
+        const urlObj = new URL(input);
+        const pathSegments = urlObj.pathname.split('/');
+        repoName = pathSegments[1] + '/' + pathSegments[2];
+    } else {
+        repoName = input;
+    }
+    return repoName;
+}
+
+function removeInvisibleChars(str) {
+    // This regular expression matches any character that is not a visible ASCII character.
+    let regex = /[^\x20-\x7E]+/g;
+    return str.replace(regex, '');
 }
 
 function handleInput() {
-    const project = projectInput.value;
+    const repoName = projectInput.value.trim();
+    // Check for url
+    const project = parseRepoName(removeInvisibleChars(repoName));
+
     // Check for alphanumeric or hyphen, slash, alphanumeric or hyphen
     const pattern = /^[a-zA-Z]+[a-zA-Z\d\-_]*\/[a-zA-Z]+[a-zA-Z\d\-_]*$/;
 
     if (project && pattern.test(project)) {
-        projectBody.appendChild(createTableRow(project));
-        projects.push(project);
-        saveProjectsToLocalStorage(projects);
-        projectInput.value = "";
+        const tr = createTableRow(project);
+        if (tr) {
+            projectBody.appendChild(tr);
+            projects.push(project);
+            saveProjectsToLocalStorage(projects);
+            projectInput.value = "";
+        } else {
+            return;
+        }
     } else {
         console.error("Invalid project name, it should be in the format 'project/repository'.");
     }
