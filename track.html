@@ -1,23 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <title>Github Release Tracker</title>
     <link rel="stylesheet" href="track.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
 </head>
 
 <body>
     <div class="container">
         <h1>Github Release Tracker</h1>
-        <p>Enter a <a href="https://github.com/explore">Github</a> project name or URL and click the button to see its latest
-            release.<br>
+        <p>Enter a <a href="https://github.com/explore">Github</a>
+            project name or URL and click the button to see its latest release.<br>
             Click <b>Project</b> or <b>Date</b> to sort entries accordingly.<br>
         </p>
         <input id="project-input" type="text" placeholder="e.g. https://github.com/microsoft/vscode">
-        <button id="add-button">Add</button>
+        <button type="button" id="add-button">Add</button>
         <table id="project-table">
             <thead>
                 <tr>
@@ -35,12 +34,11 @@
         <div class="footer">
             <div class='box green'>Release</div>&nbsp; is newer than 1 month<br>
             <div class='box red'>Release</div>&nbsp; is older than 6 months<br>
-            <button class="remove-button">X</button>&nbsp; - click to delete the row
+            <button type="button" class="remove-button">X</button>&nbsp; - click to delete a row
         </div>
-        <div class="footer" name="rate-limit"></div>
-        
-        <script src="track.js"></script>
+        <div class="footer" id="rate-limit"></div>
     </div>
+    <script src="track.js"></script>
 </body>
 
 </html>

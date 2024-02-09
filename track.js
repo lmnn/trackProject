@@ -65,19 +65,30 @@ async function getReleaseInfo(project) {
         }
 
         const response = await fetchWithTimeout(url);
-        
+
         if (!response.ok) {
             console.log('Project not found');
             return;
         }
 
         // Log Github API rate limits
-        console.log('Rate limit:', response.headers.get('X-Ratelimit-Remaining') + "/" + response.headers.get('X-Ratelimit-Limit') + " (per hour)");
+        const currentTime = Math.floor(Date.now() / 1000); // Current time in UTC epoch (seconds)
+        // Read response header
+        const remainingLimit = response.headers.get('X-Ratelimit-Remaining');
+        const totalLimit = response.headers.get('X-Ratelimit-Limit');
         const resetTime = Number(response.headers.get('X-RateLimit-Reset'));
-        const currentTime = Math.floor(Date.now() / 1000); // Current time in UTC epoch seconds
-        const timeDiffInSeconds = resetTime - currentTime; // Time difference in seconds
+        // Calc remaining time
+        const timeDiffInSeconds = resetTime - currentTime;           // Time difference in seconds
         const timeDiffInMinutes = Math.ceil(timeDiffInSeconds / 60); // Time difference in minutes
-        console.log(`Rate limit will reset in ${timeDiffInMinutes} minutes`);
+        // Create rate limit message
+        const rateLimitMessage = `Rate limit: ${remainingLimit}/${totalLimit}`;
+        const rateResetMessage = `Limit reset in ${timeDiffInMinutes} mins`;
+        const nodeAPIInfo = `Github <a href="https://docs.github.com/en/rest">API</a> requests are limited.`;
+        console.log(rateLimitMessage + " " + rateResetMessage);
+        // Show rate limit message on footer
+        const rateLimitDiv = document.getElementById('rate-limit');
+        rateLimitDiv.innerHTML = `${nodeAPIInfo}<br>${rateLimitMessage}<br>${rateResetMessage}`;
+
 
         const data = await response.json();
 
@@ -113,7 +124,7 @@ async function getReleaseInfo(project) {
         localStorage.setItem(`releaseInfo_${project}`, JSON.stringify(cachedData2));
         return info;
     } catch (error) {
-        console.error("Error");
+        console.error("Error", error);
         return;
     }
 }
