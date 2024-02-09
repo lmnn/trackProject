@@ -18,9 +18,25 @@ function saveProjectsToLocalStorage(projects) {
     }
 }
 
+function updateRateLimitDiv(remainingLimit = "-", totalLimit = 60, resetTime = "-") {
+    const currentTime = Math.floor(Date.now() / 1000); // Current time in UTC epoch (seconds)
+    const timeDiffInMinutes = isNaN(resetTime) ? resetTime : Math.ceil(Math.abs(resetTime - currentTime) / 60);
+
+    const rateLimitMessage = `Rate limit: ${remainingLimit}/${totalLimit}`;
+    const rateResetMessage = `Limit reset in ${timeDiffInMinutes} mins`;
+    const nodeAPIInfo = `Github API requests are limited.`;
+
+    const rateLimitDiv = document.getElementById('rate-limit');
+    rateLimitDiv.innerHTML = `
+      ${nodeAPIInfo}<br>
+      ${rateLimitMessage}<br>
+      ${rateResetMessage}`;
+}
+
 // Load projects from localStorage
 function loadProjectsFromLocalStorage() {
     const savedProjects = localStorage.getItem('projects');
+    updateRateLimitDiv();
     if (savedProjects) {
         try {
             return JSON.parse(savedProjects);
@@ -72,23 +88,10 @@ async function getReleaseInfo(project) {
         }
 
         // Log Github API rate limits
-        const currentTime = Math.floor(Date.now() / 1000); // Current time in UTC epoch (seconds)
-        // Read response header
-        const remainingLimit = response.headers.get('X-Ratelimit-Remaining');
-        const totalLimit = response.headers.get('X-Ratelimit-Limit');
-        const resetTime = Number(response.headers.get('X-RateLimit-Reset'));
-        // Calc remaining time
-        const timeDiffInSeconds = resetTime - currentTime;           // Time difference in seconds
-        const timeDiffInMinutes = Math.ceil(timeDiffInSeconds / 60); // Time difference in minutes
-        // Create rate limit message
-        const rateLimitMessage = `Rate limit: ${remainingLimit}/${totalLimit}`;
-        const rateResetMessage = `Limit reset in ${timeDiffInMinutes} mins`;
-        const nodeAPIInfo = `Github <a href="https://docs.github.com/en/rest">API</a> requests are limited.`;
-        console.log(rateLimitMessage + " " + rateResetMessage);
-        // Show rate limit message on footer
-        const rateLimitDiv = document.getElementById('rate-limit');
-        rateLimitDiv.innerHTML = `${nodeAPIInfo}<br>${rateLimitMessage}<br>${rateResetMessage}`;
-
+        updateRateLimitDiv(
+            response.headers.get('X-Ratelimit-Remaining'),
+            response.headers.get('X-Ratelimit-Limit'),
+            response.headers.get('X-RateLimit-Reset'));
 
         const data = await response.json();
 
@@ -243,7 +246,7 @@ projectInput.addEventListener("keypress", function (event) {
     }
 });
 
-function sortRowsByNme(rows, ascending) {
+function sortRowsByName(rows, ascending) {
     return rows.sort(function (rowA, rowB) {
         const tdProjectA = rowA.getElementsByTagName("td")[0].textContent;
         const tdProjectB = rowB.getElementsByTagName("td")[0].textContent;
@@ -265,12 +268,12 @@ const projectName = document.getElementById("project-name");
 const projectDate = document.getElementById("project-date");
 let sortOrder = false;
 
-// Add a click event listener to the "Project" header
+// Sort by name after clicking "Project" header
 projectName.addEventListener("click", function () {
     // Get the rows in the table
     const rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
 
-    const sortedRows = sortRowsByNme(rows, sortOrder);
+    const sortedRows = sortRowsByName(rows, sortOrder);
 
     // Remove the existing rows in the table
     for (let i = table.rows.length - 1; i > 0; i--) {
@@ -287,7 +290,7 @@ projectName.addEventListener("click", function () {
     sortOrder = !sortOrder;
 });
 
-// Add a click event listener to the "Date" header
+// Sort by date after clicking "Date" header
 projectDate.addEventListener("click", function () {
     // Get the rows in the table
     const rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
@@ -305,9 +308,6 @@ projectDate.addEventListener("click", function () {
         tbody.appendChild(row);
     }
 
-    // Toggle sorting
-    sortOrder = !sortOrder;
-
     // Highlight cells in green where the date is no older than 1 month
     // and in red if older than half a year
     const today = new Date();
@@ -318,12 +318,35 @@ projectDate.addEventListener("click", function () {
     for (const row of rows) {
         const dateCell = row.getElementsByTagName("td")[2];
         const date = new Date(dateCell.textContent);
-        if (date > oneMonthAgo && date <= today) {
+        
+        if (date > oneMonthAgo) {
             dateCell.style.backgroundColor = "#00BB0033";
+
+            console.log("Debug colors:");
+            console.log(" today:", today);
+            console.log(" 1m ago:", oneMonthAgo);
+            console.log(" 1/2y ago:", halfYearAgo);
+            console.log("cell val:", dateCell.textContent);
+            console.log("cell Date:", date);
+            console.log(" date > oneMonthAgo:", Boolean(date > oneMonthAgo));
+            console.log(" date < halfYearAgo", Boolean(date < halfYearAgo));
+            console.log("");
         }
         if (date < halfYearAgo) {
             dateCell.style.backgroundColor = "#BB000033";
+
+            console.log("Debug colors:");
+            console.log(" today:", today);
+            console.log(" 1m ago:", oneMonthAgo);
+            console.log(" 1/2y ago:", halfYearAgo);
+            console.log("cell val:", dateCell.textContent);
+            console.log("cell Date:", date);
+            console.log(" date > oneMonthAgo:", Boolean(date > oneMonthAgo));
+            console.log(" date < halfYearAgo", Boolean(date < halfYearAgo));
+            console.log("");
         }
     }
-
+    
+    // Toggle sorting
+    sortOrder = !sortOrder;
 });
