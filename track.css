@@ -64,11 +64,6 @@ th {
     color: white;
 }
 
-.footer {
-    font-size: small;
-    padding: 5px;
-}
-
 /* Bold font for Release column */
 td:nth-child(2) {
     font-weight: bold;
@@ -99,6 +94,13 @@ td:last-child {
     max-width: 1200px;
     margin: 2% auto;
     width: 95%;
+}
+
+.footer {
+    font-size: small;
+    padding: 5px;
+    margin-right: 1rem;
+    display: inline-block;
 }
 
 .box {
