@@ -83,7 +83,8 @@ async function getReleaseInfo(project) {
         const response = await fetchWithTimeout(url);
 
         if (!response.ok) {
-            console.log('Project not found');
+            console.log('Project ' + project + ' not found');
+            alert('Project ' + project + ' not found');
             return;
         }
 
@@ -166,17 +167,16 @@ function createTableRow(project) {
     getReleaseInfo(project)
         .then(info => {
             if (!info) {
-                console.log("DEBUG ", project)
                 projects.splice(projects.indexOf(project), 1);
                 saveProjectsToLocalStorage(projects);
                 localStorage.removeItem(`releaseInfo_${project}`);
                 projectBody.removeChild(tr);
                 return;
             } else {
-                tdLatest.textContent = info[0] ? info[0] : "-";                               // latest Release
-                tdDate.textContent = info[1] ? new Date(info[1]).toLocaleDateString() : "-";  // release Date
-                tdPrevious.textContent = info[2] ? info[2] : "-";                             // previous Release
-                tdDiff.textContent = info[3] ? info[3] + " days" : "-";                       // Delta in days
+                tdLatest.textContent = info[0] ? info[0] : "-";                                      // latest Release
+                tdDate.textContent = info[1] ? new Date(info[1]).toISOString().split('T')[0] : "-";  // release Date
+                tdPrevious.textContent = info[2] ? info[2] : "-";                                    // previous Release
+                tdDiff.textContent = info[3] ? info[3] + " days" : "-";                              // Delta in days
             }
         })
         .catch(error => console.error(error));
@@ -319,31 +319,10 @@ projectDate.addEventListener("click", function () {
         const dateCell = row.getElementsByTagName("td")[2];
         const date = new Date(dateCell.textContent);
         
-        if (date > oneMonthAgo) {
+        if (date.getTime() > oneMonthAgo.getTime()) {
             dateCell.style.backgroundColor = "#00BB0033";
-
-            console.log("Debug colors:");
-            console.log(" today:", today);
-            console.log(" 1m ago:", oneMonthAgo);
-            console.log(" 1/2y ago:", halfYearAgo);
-            console.log("cell val:", dateCell.textContent);
-            console.log("cell Date:", date);
-            console.log(" date > oneMonthAgo:", Boolean(date > oneMonthAgo));
-            console.log(" date < halfYearAgo", Boolean(date < halfYearAgo));
-            console.log("");
-        }
-        if (date < halfYearAgo) {
+        } else if (date.getTime() < halfYearAgo.getTime()) {
             dateCell.style.backgroundColor = "#BB000033";
-
-            console.log("Debug colors:");
-            console.log(" today:", today);
-            console.log(" 1m ago:", oneMonthAgo);
-            console.log(" 1/2y ago:", halfYearAgo);
-            console.log("cell val:", dateCell.textContent);
-            console.log("cell Date:", date);
-            console.log(" date > oneMonthAgo:", Boolean(date > oneMonthAgo));
-            console.log(" date < halfYearAgo", Boolean(date < halfYearAgo));
-            console.log("");
         }
     }
     
