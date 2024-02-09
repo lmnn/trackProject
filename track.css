@@ -117,6 +117,10 @@ td:last-child {
     background-color: #00BB0033;
 }
 
+#version-info {
+    display: none;
+}
+
 @media screen and (max-width: 480px) {
     body {
         font-size: 0.8em;
