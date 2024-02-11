@@ -133,6 +133,24 @@ async function getReleaseInfo(project) {
     }
 }
 
+function setCellColor(cellDate) {
+    // Highlight cell in green where the date is no older than 1 month and in red if older than half a year
+    if (!cellDate) { return }
+    const today = new Date();
+    const oneMonthAgo = new Date();
+    const halfYearAgo = new Date();
+    oneMonthAgo.setMonth(today.getMonth() - 1);
+    halfYearAgo.setMonth(today.getMonth() - 6);
+        
+    const date = new Date(cellDate);
+        
+    if (date.getTime() > oneMonthAgo.getTime()) {
+        return "#00BB0033"; //green
+    } else if (date.getTime() < halfYearAgo.getTime()) {
+        return "#BB000033"; //red
+    }
+}
+
 function createTableRow(project) {
     const tr = document.createElement("tr");
     const tdProject = document.createElement("td");
@@ -175,6 +193,7 @@ function createTableRow(project) {
             } else {
                 tdLatest.textContent = info[0] ? info[0] : "-";                                      // latest Release
                 tdDate.textContent = info[1] ? new Date(info[1]).toISOString().split('T')[0] : "-";  // release Date
+                tdDate.style.backgroundColor = setCellColor(info[1]);                                // cell color
                 tdPrevious.textContent = info[2] ? info[2] : "-";                                    // previous Release
                 tdDiff.textContent = info[3] ? info[3] + " days" : "-";                              // Delta in days
             }
@@ -308,24 +327,6 @@ projectDate.addEventListener("click", function () {
         tbody.appendChild(row);
     }
 
-    // Highlight cells in green where the date is no older than 1 month
-    // and in red if older than half a year
-    const today = new Date();
-    const oneMonthAgo = new Date();
-    const halfYearAgo = new Date();
-    oneMonthAgo.setMonth(today.getMonth() - 1);
-    halfYearAgo.setMonth(today.getMonth() - 6);
-    for (const row of rows) {
-        const dateCell = row.getElementsByTagName("td")[2];
-        const date = new Date(dateCell.textContent);
-        
-        if (date.getTime() > oneMonthAgo.getTime()) {
-            dateCell.style.backgroundColor = "#00BB0033";
-        } else if (date.getTime() < halfYearAgo.getTime()) {
-            dateCell.style.backgroundColor = "#BB000033";
-        }
-    }
-    
     // Toggle sorting
     sortOrder = !sortOrder;
 });
