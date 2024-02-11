@@ -83,11 +83,22 @@ td:last-child {
 
 .sortable-header {
     cursor: pointer;
+    color: #0099ff;
 }
 
 .sortable-header:hover {
     text-decoration: underline;
+    color: #0099ffaa;
+}
+
+a {
     color: #0099ff;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
 
 .container {
@@ -154,5 +165,13 @@ td:last-child {
         margin: 0;
         padding: 0;
         width: 100%;
+    }
+
+    p {
+        padding-left: 0.2em;
+    }
+
+    #project-input {
+        margin-left: 0.2em;
     }
 }
