@@ -4,4 +4,5 @@ You can edit the default list on the top of [track.js](https://github.com/lmnn/t
 
 A default list of projects You should see on the first run:
 
-![image](https://github.com/lmnn/trackProject/assets/5864652/970fcdcb-a71f-4512-8b15-32f955948974)
+![image](https://github.com/lmnn/trackProject/assets/5864652/d0dea0dd-b56c-4497-94c2-1cd26e2eb636)
+
