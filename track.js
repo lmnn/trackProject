@@ -20,11 +20,11 @@ function saveProjectsToLocalStorage(projects) {
 
 function updateRateLimitDiv(remainingLimit = "-", totalLimit = 60, resetTime = "-") {
     const currentTime = Math.floor(Date.now() / 1000); // Current time in UTC epoch (seconds)
-    const timeDiffInMinutes = isNaN(resetTime) ? resetTime : Math.ceil(Math.abs(resetTime - currentTime) / 60);
+    const timeDiffInMinutes = isNaN(resetTime) ? "-" : Math.ceil(Math.abs(resetTime - currentTime) / 60);
 
     const rateLimitMessage = `Rate limit: ${remainingLimit}/${totalLimit}`;
     const rateResetMessage = `Limit reset in ${timeDiffInMinutes} mins`;
-    const nodeAPIInfo = `Github API requests are limited.`;
+    const nodeAPIInfo = 'Github API requests are limited.';
 
     const rateLimitDiv = document.getElementById('rate-limit');
     rateLimitDiv.innerHTML = `
@@ -64,6 +64,8 @@ function fetchWithTimeout(url, options, timeout = 10000) {
     ]);
 }
 
+let displayLimit = [60];
+
 async function getReleaseInfo(project) {
     const url = "https://api.github.com/repos/" + project + "/releases";
     try {
@@ -82,17 +84,18 @@ async function getReleaseInfo(project) {
 
         const response = await fetchWithTimeout(url);
 
+        // Log Github API rate limits
+        displayLimit.push(Number(response.headers.get('X-Ratelimit-Remaining')));
+        updateRateLimitDiv(
+            Math.min(...displayLimit),
+            response.headers.get('X-RateLimit-Limit'),
+            response.headers.get('X-RateLimit-Reset'));
+
         if (!response.ok) {
             console.log('Project ' + project + ' not found');
             alert('Project ' + project + ' not found');
             return;
         }
-
-        // Log Github API rate limits
-        updateRateLimitDiv(
-            response.headers.get('X-Ratelimit-Remaining'),
-            response.headers.get('X-Ratelimit-Limit'),
-            response.headers.get('X-RateLimit-Reset'));
 
         const data = await response.json();
 
@@ -141,9 +144,9 @@ function setCellColor(cellDate) {
     const halfYearAgo = new Date();
     oneMonthAgo.setMonth(today.getMonth() - 1);
     halfYearAgo.setMonth(today.getMonth() - 6);
-        
+
     const date = new Date(cellDate);
-        
+
     if (date.getTime() > oneMonthAgo.getTime()) {
         return "#00BB0033"; //green
     } else if (date.getTime() < halfYearAgo.getTime()) {
@@ -191,6 +194,7 @@ function createTableRow(project) {
                 projectBody.removeChild(tr);
                 return;
             } else {
+                tdProject.innerHTML = `<a href="https://github.com/${project}" target="_blank">${project}</a>`; // link to the project
                 tdLatest.textContent = info[0] ? info[0] : "-";                                      // latest Release
                 tdDate.textContent = info[1] ? new Date(info[1]).toISOString().split('T')[0] : "-";  // release Date
                 tdDate.style.backgroundColor = setCellColor(info[1]);                                // cell color
@@ -212,6 +216,7 @@ for (const project of projects) {
     if (tr) {
         projectBody.appendChild(tr);
     }
+    displayLimit = [60];
 }
 
 function parseRepoName(input) {
@@ -251,7 +256,8 @@ function handleInput() {
             return;
         }
     } else {
-        console.error("Invalid project name, it should be in the format 'project/repository'.");
+        console.error(`Invalid project name (${project}), it should be in the format 'project/repository'.`);
+        alert(`Invalid project name (${project}), it should be in the format 'project/repository'.`);
     }
 }
 

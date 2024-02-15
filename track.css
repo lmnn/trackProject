@@ -1,8 +1,15 @@
+:root {
+    --main-color:       #0099ff;
+    --main-color-alpha: #0099ffaa;
+    --secondary-color:  #0077cc;
+    --background-color: #f0f0f0;
+}
+
 body {
     font-family: System-UI, Arial;
     margin: 0;
     padding: 0;
-    background-color: #f0f0f0;
+    background-color: var(--background-color);
     display: flex;
     justify-content: center;
 }
@@ -31,13 +38,18 @@ button {
     border: none;
     border-radius: 5px;
     padding: 5px 10px;
-    background-color: #0099ff;
+    background-color: var(--main-color);
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
     color: white;
     cursor: pointer;
 }
 
 button:hover {
-    background-color: #0077cc;
+    background-color: var(--secondary-color);
+}
+
+button:active {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 table {
@@ -54,8 +66,6 @@ td {
 }
 
 th {
-    background-color: #eee;
-    color: #333;
     padding: 10px;
 }
 
@@ -78,21 +88,21 @@ td:nth-child(n+5) {
 th,
 td:last-child {
     border: none;
-    background-color: #eee;
+    background-color: var(--background-color);
 }
 
 .sortable-header {
     cursor: pointer;
-    color: #0099ff;
+    color: var(--main-color);
 }
 
 .sortable-header:hover {
     text-decoration: underline;
-    color: #0099ffaa;
+    color: var(--main-color-alpha);
 }
 
 a {
-    color: #0099ff;
+    color: var(--main-color);
     font-weight: bold;
     text-decoration: none;
 }
@@ -128,7 +138,7 @@ a:hover {
     background-color: #00BB0033;
 }
 
-#version-info {
+#project-info {
     display: none;
 }
 
