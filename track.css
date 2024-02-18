@@ -3,6 +3,7 @@
     --main-color-alpha: #0099ffaa;
     --secondary-color:  #0077cc;
     --background-color: #f0f0f0;
+    --border:           #cccccc;
 }
 
 body {
@@ -11,13 +12,7 @@ body {
     padding: 0;
     background-color: var(--background-color);
     display: flex;
-    justify-content: center;
-}
-
-#github-link img {
-    height: 3em;
-    opacity: 0.2;
-    margin-right: 10px;
+    justify-content: flex-start;
 }
 
 h1 {
@@ -32,7 +27,7 @@ p {
 
 input {
     width: 15rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 5px;
     padding: 5px;
     margin-bottom: 0.5rem;
@@ -58,6 +53,15 @@ button:active {
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+button:disabled {
+    text-align: center;
+    padding: 0px 5px 0px 5px;
+    margin-right: 10px;
+    margin-left: 10px;
+    height: 1.5em;
+    font-size: smaller;
+}
+
 table {
     border-collapse: collapse;
     margin-top: 20px;
@@ -65,7 +69,7 @@ table {
 }
 
 td {
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     padding: 0.6rem;
     text-align: left;
     background-color: white;
@@ -123,17 +127,9 @@ a:hover {
     width: 95%;
 }
 
-.footer {
-    font-size: small;
-    padding: 5px;
-    margin-right: 1rem;
-    display: inline-block;
-}
-
 .box {
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     max-width: fit-content;
-    display: inline-block;
 }
 
 .red {
@@ -144,9 +140,29 @@ a:hover {
     background-color: #00BB0033;
 }
 
-#project-info {
-    display: none;
+.footer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    font-size: small;
 }
+
+.footer-item {
+    padding: 1em;
+}
+
+#github-link img {
+    height: 2.5em;
+    opacity: 0.2;
+    margin-right: 10px;
+}
+
+#github-link {
+    display: flex;
+    align-items: center;
+    padding-right: 40px;
+}
+
 
 @media screen and (max-width: 480px) {
     body {
