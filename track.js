@@ -14,7 +14,7 @@ function saveProjectsToLocalStorage(projects) {
     try {
         localStorage.setItem('projects', JSON.stringify(projects));
     } catch (error) {
-        console.error('Failed to stringify projects');
+        console.error('Check Your projects list');
     }
 }
 
@@ -100,9 +100,15 @@ async function getReleaseInfo(project) {
         const data = await response.json();
 
         let latestRelease, previousRelease;
+        // read checkbox value
+        const stableOnly = stableCheckbox.checked;
 
         for (let i = 0; i < data.length; i++) {
-            if (!data[i].tag_name.includes('nightly')) {
+            // not nightly and not prerelease
+            if (!data[i].tag_name.includes('nightly')
+                && (stableOnly ? !data[i].prerelease : true) // stableOnly checkbox disables prereleases
+            ) {
+
                 if (!latestRelease) {
                     latestRelease = data[i];
                 } else if (!previousRelease) {
@@ -206,17 +212,32 @@ function createTableRow(project) {
     return tr;
 }
 
+// Get elements
 const projectInput = document.getElementById("project-input");
 const projectBody = document.getElementById("project-body");
 const addButton = document.getElementById("add-button");
+const stableCheckbox = document.getElementById("stable-option");
+const table = document.getElementById("project-table");
+const projectName = document.getElementById("project-name");
+const projectDate = document.getElementById("project-date");
 
-// Use your projects list
-for (const project of projects) {
-    const tr = createTableRow(project);
-    if (tr) {
-        projectBody.appendChild(tr);
+startApp();
+
+// Use projects list
+function startApp() {
+    // set checkbox value
+    const storedValue = localStorage.getItem("stableOnly");
+    stableCheckbox.checked = storedValue === "true";
+    
+
+    // load projects
+    for (const project of projects) {
+        const tr = createTableRow(project);
+        if (tr) {
+            projectBody.appendChild(tr);
+        }
+        displayLimit = [60];
     }
-    displayLimit = [60];
 }
 
 function parseRepoName(input) {
@@ -238,7 +259,9 @@ function removeInvisibleChars(str) {
 }
 
 function handleInput() {
+    // read input value
     const repoName = projectInput.value.trim();
+
     // Check for url
     const project = parseRepoName(removeInvisibleChars(repoName));
 
@@ -271,6 +294,33 @@ projectInput.addEventListener("keypress", function (event) {
     }
 });
 
+stableCheckbox.addEventListener("change", (e) => {
+    // save checkbox value
+    localStorage.setItem('stableOnly', e.target.checked);
+
+    // clear cache
+    deleteItemsWithPrefix("releaseInfo_");
+
+    // clear table
+    const rowsToDelete = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
+    rowsToDelete.forEach(row => row.remove());
+
+    // reload
+    startApp();
+});
+
+function deleteItemsWithPrefix(prefix) {
+
+    const keys = Object.keys(localStorage);
+
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        if (key.startsWith(prefix)) {
+            localStorage.removeItem(key);
+        }
+    }
+}
+
 function sortRowsByName(rows, ascending) {
     return rows.sort(function (rowA, rowB) {
         const tdProjectA = rowA.getElementsByTagName("td")[0].textContent;
@@ -287,10 +337,6 @@ function sortRowsByDate(rows, ascending) {
     });
 }
 
-// Get the table and the headers
-const table = document.getElementById("project-table");
-const projectName = document.getElementById("project-name");
-const projectDate = document.getElementById("project-date");
 let sortOrder = false;
 
 // Sort by name after clicking "Project" header
