@@ -228,7 +228,6 @@ function startApp() {
     // set checkbox value
     const storedValue = localStorage.getItem("stableOnly");
     stableCheckbox.checked = storedValue === "true";
-    
 
     // load projects
     for (const project of projects) {
@@ -252,20 +251,12 @@ function parseRepoName(input) {
     return repoName;
 }
 
-function removeInvisibleChars(str) {
-    // This regular expression matches any character that is not a visible ASCII character.
-    let regex = /[^\x20-\x7E]+/g;
-    return str.replace(regex, '');
-}
-
 function handleInput() {
     // read input value
-    const repoName = projectInput.value.trim();
+    const regex = /[^\x20-\x7E]+/g; // not visible ASCII characters
+    const project = projectInput.value.trim().replace(regex, '');
 
-    // Check for url
-    const project = parseRepoName(removeInvisibleChars(repoName));
-
-    // Check for alphanumeric or hyphen, slash, alphanumeric or hyphen
+    // Check url for alphanumeric or hyphen, slash, alphanumeric or hyphen
     const pattern = /^[a-zA-Z]+[a-zA-Z\d\-_]*\/[a-zA-Z]+[a-zA-Z\d\-_]*$/;
 
     if (project && pattern.test(project)) {
@@ -279,8 +270,9 @@ function handleInput() {
             return;
         }
     } else {
-        console.error(`Invalid project name (${project}), it should be in the format 'project/repository'.`);
-        alert(`Invalid project name (${project}), it should be in the format 'project/repository'.`);
+        const msg = `Invalid project name (${project}), it should be in the format 'project/repository'.`;
+        console.error(msg);
+        alert(msg);
     }
 }
 
@@ -310,15 +302,9 @@ stableCheckbox.addEventListener("change", (e) => {
 });
 
 function deleteItemsWithPrefix(prefix) {
-
-    const keys = Object.keys(localStorage);
-
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        if (key.startsWith(prefix)) {
-            localStorage.removeItem(key);
-        }
-    }
+    Object.keys(localStorage)
+        .filter(key => key.startsWith(prefix))
+        .forEach(key => localStorage.removeItem(key));
 }
 
 function sortRowsByName(rows, ascending) {
@@ -339,46 +325,32 @@ function sortRowsByDate(rows, ascending) {
 
 let sortOrder = false;
 
-// Sort by name after clicking "Project" header
-projectName.addEventListener("click", function () {
+function sortTable(criteria) {
     // Get the rows in the table
     const rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
-
-    const sortedRows = sortRowsByName(rows, sortOrder);
-
-    // Remove the existing rows in the table
-    for (let i = table.rows.length - 1; i > 0; i--) {
-        table.deleteRow(i);
-    }
-
-    // Append the sorted rows to the table
     const tbody = table.getElementsByTagName("tbody")[0];
-    for (const row of sortedRows) {
-        tbody.appendChild(row);
+
+    // reorder the table
+    let sortedRows;
+    rows.forEach(row => row.remove());
+    if (criteria === "byName") {
+        sortedRows = sortRowsByName(rows, sortOrder);
     }
+    if (criteria === "byDate") {
+        sortedRows = sortRowsByDate(rows, sortOrder);
+    }
+    sortedRows.forEach(row => tbody.appendChild(row));
 
     // Toggle sorting
     sortOrder = !sortOrder;
+}
+
+// Sort by name after clicking "Project" header
+projectName.addEventListener("click", function () {
+    sortTable("byName");
 });
 
 // Sort by date after clicking "Date" header
 projectDate.addEventListener("click", function () {
-    // Get the rows in the table
-    const rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
-
-    const sortedRows = sortRowsByDate(rows, sortOrder);
-
-    // Remove the existing rows in the table
-    for (let i = table.rows.length - 1; i > 0; i--) {
-        table.deleteRow(i);
-    }
-
-    // Append the sorted rows to the table
-    const tbody = table.getElementsByTagName("tbody")[0];
-    for (const row of sortedRows) {
-        tbody.appendChild(row);
-    }
-
-    // Toggle sorting
-    sortOrder = !sortOrder;
+    sortTable("byDate");
 });
