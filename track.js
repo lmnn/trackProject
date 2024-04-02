@@ -254,7 +254,7 @@ function parseRepoName(input) {
 function handleInput() {
     // read input value
     const regex = /[^\x20-\x7E]+/g; // not visible ASCII characters
-    const project = projectInput.value.trim().replace(regex, '');
+    const project = parseRepoName(projectInput.value.trim().replace(regex, ''));
 
     // Check url for alphanumeric or hyphen, slash, alphanumeric or hyphen
     const pattern = /^[a-zA-Z]+[a-zA-Z\d\-_]*\/[a-zA-Z]+[a-zA-Z\d\-_]*$/;
