@@ -14,7 +14,7 @@ function saveProjectsToLocalStorage(projects) {
     try {
         localStorage.setItem('projects', JSON.stringify(projects));
     } catch (error) {
-        console.error('Failed to stringify projects');
+        console.error('Check Your projects list');
     }
 }
 
@@ -100,9 +100,15 @@ async function getReleaseInfo(project) {
         const data = await response.json();
 
         let latestRelease, previousRelease;
+        // read checkbox value
+        const stableOnly = stableCheckbox.checked;
 
         for (let i = 0; i < data.length; i++) {
-            if (!data[i].tag_name.includes('nightly')) {
+            // not nightly and not prerelease
+            if (!data[i].tag_name.includes('nightly')
+                && (stableOnly ? !data[i].prerelease : true) // stableOnly checkbox disables prereleases
+            ) {
+
                 if (!latestRelease) {
                     latestRelease = data[i];
                 } else if (!previousRelease) {
@@ -206,17 +212,31 @@ function createTableRow(project) {
     return tr;
 }
 
+// Get elements
 const projectInput = document.getElementById("project-input");
 const projectBody = document.getElementById("project-body");
 const addButton = document.getElementById("add-button");
+const stableCheckbox = document.getElementById("stable-option");
+const table = document.getElementById("project-table");
+const projectName = document.getElementById("project-name");
+const projectDate = document.getElementById("project-date");
 
-// Use your projects list
-for (const project of projects) {
-    const tr = createTableRow(project);
-    if (tr) {
-        projectBody.appendChild(tr);
+startApp();
+
+// Use projects list
+function startApp() {
+    // set checkbox value
+    const storedValue = localStorage.getItem("stableOnly");
+    stableCheckbox.checked = storedValue === "true";
+
+    // load projects
+    for (const project of projects) {
+        const tr = createTableRow(project);
+        if (tr) {
+            projectBody.appendChild(tr);
+        }
+        displayLimit = [60];
     }
-    displayLimit = [60];
 }
 
 function parseRepoName(input) {
@@ -231,18 +251,12 @@ function parseRepoName(input) {
     return repoName;
 }
 
-function removeInvisibleChars(str) {
-    // This regular expression matches any character that is not a visible ASCII character.
-    let regex = /[^\x20-\x7E]+/g;
-    return str.replace(regex, '');
-}
-
 function handleInput() {
-    const repoName = projectInput.value.trim();
-    // Check for url
-    const project = parseRepoName(removeInvisibleChars(repoName));
+    // read input value
+    const regex = /[^\x20-\x7E]+/g; // not visible ASCII characters
+    const project = parseRepoName(projectInput.value.trim().replace(regex, ''));
 
-    // Check for alphanumeric or hyphen, slash, alphanumeric or hyphen
+    // Check url for alphanumeric or hyphen, slash, alphanumeric or hyphen
     const pattern = /^[a-zA-Z]+[a-zA-Z\d\-_]*\/[a-zA-Z]+[a-zA-Z\d\-_]*$/;
 
     if (project && pattern.test(project)) {
@@ -256,8 +270,9 @@ function handleInput() {
             return;
         }
     } else {
-        console.error(`Invalid project name (${project}), it should be in the format 'project/repository'.`);
-        alert(`Invalid project name (${project}), it should be in the format 'project/repository'.`);
+        const msg = `Invalid project name (${project}), it should be in the format 'project/repository'.`;
+        console.error(msg);
+        alert(msg);
     }
 }
 
@@ -270,6 +285,27 @@ projectInput.addEventListener("keypress", function (event) {
         handleInput();
     }
 });
+
+stableCheckbox.addEventListener("change", (e) => {
+    // save checkbox value
+    localStorage.setItem('stableOnly', e.target.checked);
+
+    // clear cache
+    deleteItemsWithPrefix("releaseInfo_");
+
+    // clear table
+    const rowsToDelete = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
+    rowsToDelete.forEach(row => row.remove());
+
+    // reload
+    startApp();
+});
+
+function deleteItemsWithPrefix(prefix) {
+    Object.keys(localStorage)
+        .filter(key => key.startsWith(prefix))
+        .forEach(key => localStorage.removeItem(key));
+}
 
 function sortRowsByName(rows, ascending) {
     return rows.sort(function (rowA, rowB) {
@@ -287,52 +323,34 @@ function sortRowsByDate(rows, ascending) {
     });
 }
 
-// Get the table and the headers
-const table = document.getElementById("project-table");
-const projectName = document.getElementById("project-name");
-const projectDate = document.getElementById("project-date");
 let sortOrder = false;
 
-// Sort by name after clicking "Project" header
-projectName.addEventListener("click", function () {
+function sortTable(criteria) {
     // Get the rows in the table
     const rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
-
-    const sortedRows = sortRowsByName(rows, sortOrder);
-
-    // Remove the existing rows in the table
-    for (let i = table.rows.length - 1; i > 0; i--) {
-        table.deleteRow(i);
-    }
-
-    // Append the sorted rows to the table
     const tbody = table.getElementsByTagName("tbody")[0];
-    for (const row of sortedRows) {
-        tbody.appendChild(row);
+
+    // reorder the table
+    let sortedRows;
+    rows.forEach(row => row.remove());
+    if (criteria === "byName") {
+        sortedRows = sortRowsByName(rows, sortOrder);
     }
+    if (criteria === "byDate") {
+        sortedRows = sortRowsByDate(rows, sortOrder);
+    }
+    sortedRows.forEach(row => tbody.appendChild(row));
 
     // Toggle sorting
     sortOrder = !sortOrder;
+}
+
+// Sort by name after clicking "Project" header
+projectName.addEventListener("click", function () {
+    sortTable("byName");
 });
 
 // Sort by date after clicking "Date" header
 projectDate.addEventListener("click", function () {
-    // Get the rows in the table
-    const rows = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
-
-    const sortedRows = sortRowsByDate(rows, sortOrder);
-
-    // Remove the existing rows in the table
-    for (let i = table.rows.length - 1; i > 0; i--) {
-        table.deleteRow(i);
-    }
-
-    // Append the sorted rows to the table
-    const tbody = table.getElementsByTagName("tbody")[0];
-    for (const row of sortedRows) {
-        tbody.appendChild(row);
-    }
-
-    // Toggle sorting
-    sortOrder = !sortOrder;
+    sortTable("byDate");
 });
