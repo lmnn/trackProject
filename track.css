@@ -230,4 +230,8 @@ a:hover {
     input[type=checkbox] {
         margin-left: 1rem;
     }
+
+    input[type=file] {
+        width: 11.5rem;
+    }
 }
