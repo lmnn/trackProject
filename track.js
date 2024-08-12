@@ -1,5 +1,5 @@
 // Your initial projects list
-let projects = [
+let globalProjects = [
     "EdgeTX/edgetx",
     "ExpressLRS/ExpressLRS",
     "iNavFlight/inav",
@@ -52,7 +52,7 @@ function loadProjectsFromLocalStorage() {
 // Load projects from localStorage
 let savedProjects = loadProjectsFromLocalStorage();
 if (savedProjects.length > 0) {
-    projects = savedProjects;
+    globalProjects = savedProjects;
 }
 
 function fetchWithTimeout(url, options, timeout = 10000) {
@@ -184,8 +184,8 @@ function createTableRow(project) {
     removeButton.addEventListener("click", function () {
         projectBody.removeChild(tr);
         // remove from cache
-        projects.splice(projects.indexOf(project), 1);
-        saveProjectsToLocalStorage(projects);
+        globalProjects.splice(globalProjects.indexOf(project), 1);
+        saveProjectsToLocalStorage(globalProjects);
         localStorage.removeItem(`releaseInfo_${project}`);
     });
     tdAction.appendChild(removeButton);
@@ -215,6 +215,9 @@ function createTableRow(project) {
 const projectInput = document.getElementById("project-input");
 const projectBody = document.getElementById("project-body");
 const addButton = document.getElementById("add-button");
+const exportButton = document.getElementById("export-button");
+const importButton = document.getElementById("import-button");
+const importInput = document.getElementById("import-input");
 const stableCheckbox = document.getElementById("stable-option");
 const table = document.getElementById("project-table");
 const projectName = document.getElementById("project-name");
@@ -229,7 +232,7 @@ function startApp() {
     stableCheckbox.checked = storedValue === "true";
 
     // load projects
-    for (const project of projects) {
+    for (const project of globalProjects) {
         const tr = createTableRow(project);
         if (tr) {
             projectBody.appendChild(tr);
@@ -262,8 +265,8 @@ function handleInput() {
         const tr = createTableRow(project);
         if (tr) {
             projectBody.appendChild(tr);
-            projects.push(project);
-            saveProjectsToLocalStorage(projects);
+            globalProjects.push(project);
+            saveProjectsToLocalStorage(globalProjects);
             projectInput.value = "";
         } else {
             return;
@@ -296,7 +299,7 @@ stableCheckbox.addEventListener("change", (e) => {
     const rowsToDelete = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
     rowsToDelete.forEach(row => row.remove());
 
-    // reload
+    // reload app
     startApp();
 });
 
@@ -343,6 +346,96 @@ function sortTable(criteria) {
     // Toggle sorting
     sortOrder = !sortOrder;
 }
+
+function exportToCSV() {
+    // read local storage
+    saveProjectsToLocalStorage(globalProjects);
+    const localProjects = JSON.parse(localStorage.getItem('projects'));
+    // convert array to csv string
+    const csvContent = localProjects.map(project => project).join('\n');
+    // create blob from csv string
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    // create link
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'projects.csv');
+
+    // append link and click it
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function importCSV() {
+    const file = importInput.files[0];
+    const allowedMimeTypes = ['text/csv'];
+
+    if (!file || !allowedMimeTypes.includes(file.type)) {
+        alert('Please select a CSV file');
+        importInput.value = '';
+        return;
+    } else {
+        console.log("loading csv file", file.name);
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        const csvContent = event.target.result;
+        const newProjects = csvContent.split('\n').map(line => line.trim()).filter(line => line);
+        console.log('new projects:', newProjects);
+
+        // validate each line for "projectName/repoName" format
+        const validFormat = /^[^\/]+\/[^\/]+$/;
+        const validProjects = newProjects.filter(project => validFormat.test(project));
+
+        if (validProjects.length === 0) {
+            alert('Please select a valid CSV file');
+            importInput.value = '';
+            return;
+        }
+
+        // Retrieve existing projects from local storage
+        const localProjects = localStorage.getItem('projects');
+        if (localProjects === null) {
+            return;
+        }
+        const existingProjects = JSON.parse(localProjects) || [];
+
+        // Append new entries if they don't exist
+        validProjects.forEach(project => {
+            if (!existingProjects.includes(project)) {
+                existingProjects.push(project);
+                globalProjects.push(project);
+                console.log('append:', project)
+            }
+        });
+
+        // Save the updated projects back to local storage
+        localStorage.setItem('projects', JSON.stringify(existingProjects));
+        importInput.value = '';
+        console.log('csv imported');
+
+        // clear table
+        const rowsToDelete = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
+        rowsToDelete.forEach(row => row.remove());
+        // and reload app
+        startApp();
+    };
+
+    reader.readAsText(file);
+}
+
+// export and download project list to csv file
+exportButton.addEventListener("click", function () {
+    exportToCSV();
+});
+
+// import csv file with projects' list
+importButton.addEventListener("click", function () {
+    importCSV();
+});
 
 // Sort by name after clicking "Project" header
 projectName.addEventListener("click", function () {
