@@ -194,18 +194,17 @@ function createTableRow(project) {
     getReleaseInfo(project)
         .then(info => {
             if (!info) {
-                projects.splice(projects.indexOf(project), 1);
-                saveProjectsToLocalStorage(projects);
-                localStorage.removeItem(`releaseInfo_${project}`);
-                projectBody.removeChild(tr);
-                return;
+                tdLatest.textContent = "-";
+                tdDate.textContent = "-";
+                tdPrevious.textContent = "-";
+                tdDiff.textContent = "-";
             } else {
                 tdProject.innerHTML = `<a href="https://github.com/${project}" target="_blank">${project}</a>`; // link to the project
                 tdLatest.textContent = info[0] ? info[0] : "-";                                      // latest Release
                 tdDate.textContent = info[1] ? new Date(info[1]).toISOString().split('T')[0] : "-";  // release Date
                 tdDate.style.backgroundColor = setCellColor(info[1]);                                // cell color
                 tdPrevious.textContent = info[2] ? info[2] : "-";                                    // previous Release
-                tdDiff.textContent = info[3] ? info[3] + " days" : "-";                              // Delta in days
+                tdDiff.textContent = info[3] ? info[3] + " days" : "-";                              // delta in days
             }
         })
         .catch(error => console.error(error));
