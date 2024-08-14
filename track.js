@@ -231,6 +231,9 @@ function startApp() {
     const storedValue = localStorage.getItem("stableOnly");
     stableCheckbox.checked = storedValue === "true";
 
+    // create project list in a local storage 
+    saveProjectsToLocalStorage(globalProjects);
+
     // load projects
     for (const project of globalProjects) {
         const tr = createTableRow(project);
@@ -296,8 +299,7 @@ stableCheckbox.addEventListener("change", (e) => {
     deleteItemsWithPrefix("releaseInfo_");
 
     // clear table
-    const rowsToDelete = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
-    rowsToDelete.forEach(row => row.remove());
+    projectBody.innerHTML = '';
 
     // reload app
     startApp();
@@ -349,10 +351,13 @@ function sortTable(criteria) {
 
 function exportToCSV() {
     // read local storage
-    saveProjectsToLocalStorage(globalProjects);
-    const localProjects = JSON.parse(localStorage.getItem('projects'));
+    const localProjects = localStorage.getItem('projects');
+    if (localProjects === null) {
+        return;
+    }
+    const existingProjects = JSON.parse(localStorage.getItem('projects'));
     // convert array to csv string
-    const csvContent = localProjects.map(project => project).join('\n');
+    const csvContent = existingProjects.map(project => project).join('\n');
     // create blob from csv string
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
@@ -398,28 +403,23 @@ function importCSV() {
 
         // Retrieve existing projects from local storage
         const localProjects = localStorage.getItem('projects');
-        if (localProjects === null) {
-            return;
-        }
-        const existingProjects = JSON.parse(localProjects) || [];
+        const existingProjects = localProjects === null ? [] : JSON.parse(localProjects);
 
         // Append new entries if they don't exist
         validProjects.forEach(project => {
             if (!existingProjects.includes(project)) {
                 existingProjects.push(project);
-                globalProjects.push(project);
                 console.log('append:', project)
             }
         });
 
         // Save the updated projects back to local storage
-        localStorage.setItem('projects', JSON.stringify(existingProjects));
+        globalProjects = existingProjects;
         importInput.value = '';
         console.log('csv imported');
 
         // clear table
-        const rowsToDelete = Array.from(table.getElementsByTagName("tr")).slice(1);  // slice(1) to exclude the header row
-        rowsToDelete.forEach(row => row.remove());
+        projectBody.innerHTML = '';
         // and reload app
         startApp();
     };
