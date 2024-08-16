@@ -231,6 +231,8 @@ function startApp() {
     const storedValue = localStorage.getItem("stableOnly");
     stableCheckbox.checked = storedValue === "true";
 
+    importInput.value = '';
+
     // create project list in a local storage 
     saveProjectsToLocalStorage(globalProjects);
 
@@ -375,11 +377,14 @@ function exportToCSV() {
 
 function importCSV() {
     const file = importInput.files[0];
-    const allowedMimeTypes = ['text/csv'];
+    const allowedMimeTypes = ['text/csv', 'text/plain', 'application/vnd.ms-excel'];
 
-    if (!file || !allowedMimeTypes.includes(file.type)) {
+    if (!file?.type || !allowedMimeTypes.includes(file.type)) {
         alert('Please select a CSV file');
         importInput.value = '';
+        if (file?.type) {
+            console.log("file type", file.type);
+        }
         return;
     } else {
         console.log("loading csv file", file.name);
