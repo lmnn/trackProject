@@ -351,23 +351,23 @@ function sortTable(criteria) {
     sortOrder = !sortOrder;
 }
 
-function exportToCSV() {
+function exportToJSON() {
     // read local storage
     const localProjects = localStorage.getItem('projects');
     if (localProjects === null) {
         return;
     }
     const existingProjects = JSON.parse(localStorage.getItem('projects'));
-    // convert array to csv string
-    const csvContent = existingProjects.map(project => project).join('\n');
-    // create blob from csv string
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // convert array to json string
+    const jsonContent = JSON.stringify(existingProjects, null, 2);
+    // create blob from json string
+    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
 
     // create link
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', 'projects.csv');
+    link.setAttribute('download', 'projects.json');
 
     // append link and click it
     document.body.appendChild(link);
@@ -375,71 +375,76 @@ function exportToCSV() {
     document.body.removeChild(link);
 }
 
-function importCSV() {
+function importJSON() {
     const file = importInput.files[0];
-    const allowedMimeTypes = ['text/csv', 'text/plain', 'application/vnd.ms-excel'];
+    const allowedMimeTypes = ['application/json'];
 
     if (!file?.type || !allowedMimeTypes.includes(file.type)) {
-        alert('Please select a CSV file');
+        alert('Please select a JSON file');
         importInput.value = '';
         if (file?.type) {
             console.log("file type", file.type);
         }
         return;
     } else {
-        console.log("loading csv file", file.name);
+        console.log("loading json file", file.name);
     }
 
     const reader = new FileReader();
     reader.onload = function (event) {
-        const csvContent = event.target.result;
-        const newProjects = csvContent.split('\n').map(line => line.trim()).filter(line => line);
-        console.log('new projects:', newProjects);
+        try {
+            const jsonContent = JSON.parse(event.target.result);
+            console.log('new projects:', jsonContent);
 
-        // validate each line for "projectName/repoName" format
-        const validFormat = /^[^\/]+\/[^\/]+$/;
-        const validProjects = newProjects.filter(project => validFormat.test(project));
+            // validate each project for "projectName/repoName" format
+            const validFormat = /^[^\/]+\/[^\/]+$/;
 
-        if (validProjects.length === 0) {
-            alert('Please select a valid CSV file');
-            importInput.value = '';
-            return;
-        }
-
-        // Retrieve existing projects from local storage
-        const localProjects = localStorage.getItem('projects');
-        const existingProjects = localProjects === null ? [] : JSON.parse(localProjects);
-
-        // Append new entries if they don't exist
-        validProjects.forEach(project => {
-            if (!existingProjects.includes(project)) {
-                existingProjects.push(project);
-                console.log('append:', project)
+            const validProjects = jsonContent.filter(project => validFormat.test(project));
+            if (validProjects.length === 0) {
+                alert('Please select a valid JSON file');
+                importInput.value = '';
+                return;
             }
-        });
 
-        // Save the updated projects back to local storage
-        globalProjects = existingProjects;
-        importInput.value = '';
-        console.log('csv imported');
+            // Retrieve existing projects from local storage
+            const localProjects = localStorage.getItem('projects');
+            const existingProjects = localProjects === null ? [] : JSON.parse(localProjects);
 
-        // clear table
-        projectBody.innerHTML = '';
-        // and reload app
-        startApp();
+            // Append new entries if they don't exist
+            validProjects.forEach(project => {
+                if (!existingProjects.includes(project)) {
+                    existingProjects.push(project);
+                    console.log('append:', project);
+                }
+            });
+
+            // Save the updated projects back to local storage
+            globalProjects = existingProjects;
+            importInput.value = '';
+            console.log('json imported');
+
+            // clear table
+            projectBody.innerHTML = '';
+            // and reload app
+            startApp();
+        } catch (error) {
+            alert('Error parsing JSON file');
+            console.error('Error parsing JSON:', error);
+            importInput.value = '';
+        }
     };
 
     reader.readAsText(file);
 }
 
-// export and download project list to csv file
+// export and download project list to json file
 exportButton.addEventListener("click", function () {
-    exportToCSV();
+    exportToJSON();
 });
 
-// import csv file with projects' list
+// import json file with projects' list
 importButton.addEventListener("click", function () {
-    importCSV();
+    importJSON();
 });
 
 // Sort by name after clicking "Project" header
